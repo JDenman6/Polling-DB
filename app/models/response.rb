@@ -27,8 +27,26 @@ class Response < ActiveRecord::Base
   def sibling_responses
     # ### COALESCE METHOD
     # self.question.responses.where("responses.id != COALESCE( ? , 0 )", self.id)
-    self.question.responses.where("(? IS NULL) OR (? != responses.id)", self.id, self.id)
+
+    ### Lazy OR method
+    # self.question.responses.where("(? IS NULL) OR (? != responses.id)", self.id, self.id)
+
+    ### Single query method
+    Response.joins(:answer_choice => :question)
+            .where("questions.id IN #{self_question}")
+            .where("(? IS NULL) OR (? != responses.id)", self.id, self.id)
   end
+
+  def self_question
+    <<-SQL
+    (SELECT questions.id
+    FROM questions
+    JOIN answer_choices ON questions.id = answer_choices.question_id
+    WHERE answer_choices.id = #{self.answer_choice_id})
+    SQL
+  end
+
+
 
   def respondent_has_not_already_answered_question
     if sibling_responses.exists?(["responses.respondent_id = ?", self.respondent_id])
@@ -40,6 +58,8 @@ class Response < ActiveRecord::Base
     if self.answer_choice.question.poll.author_id == respondent_id
       errors[:poll_author] << "user is author of poll!"
     end
+
+
   end
 
 end

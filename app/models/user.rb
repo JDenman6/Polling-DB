@@ -16,18 +16,6 @@ class User < ActiveRecord::Base
   )
 
   def completed_polls
-
-    own_responses = <<-SQL
-      LEFT OUTER JOIN (
-        SELECT
-          responses.*
-        FROM
-          responses
-        WHERE
-          responses.respondent_id = #{self.id}
-      ) AS own_responses ON answer_choices.id = own_responses.answer_choice_id
-    SQL
-
     complete_polls = Poll.joins(:questions => :answer_choices)
       .joins(own_responses)
       .group("polls.id")
@@ -65,5 +53,30 @@ class User < ActiveRecord::Base
 
   end
 
+  def uncompleted_polls
+    uncomplete_polls = Poll.joins(:questions => :answer_choices)
+      .joins(own_responses)
+      .group("polls.id")
+      .having("COUNT(own_responses.*)
+          BETWEEN 1 AND (COUNT(DISTINCT questions.id) - 1)")
+      .select("polls.*")
+
+    uncomplete_polls.map do |poll|
+      poll.title
+    end
+  end
+
+  def own_responses
+    <<-SQL
+    LEFT OUTER JOIN (
+      SELECT
+        responses.*
+      FROM
+        responses
+      WHERE
+        responses.respondent_id = #{self.id}
+      ) AS own_responses ON answer_choices.id = own_responses.answer_choice_id
+    SQL
+  end
 
 end
