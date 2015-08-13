@@ -25,12 +25,9 @@ class Response < ActiveRecord::Base
   )
 
   def sibling_responses
-    #all_responses = self.question.responses
-    if self.id.nil?
-      self.question.responses
-    else
-      self.question.responses.where("responses.id != ?", self.id)
-    end
+    # ### COALESCE METHOD
+    # self.question.responses.where("responses.id != COALESCE( ? , 0 )", self.id)
+    self.question.responses.where("(? IS NULL) OR (? != responses.id)", self.id, self.id)
   end
 
   def respondent_has_not_already_answered_question
