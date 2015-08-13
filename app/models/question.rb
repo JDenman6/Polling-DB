@@ -13,6 +13,13 @@ class Question < ActiveRecord::Base
     :answer_choices,
     :class_name => "AnswerChoice",
     :foreign_key => :question_id,
-    :primary_key => :id 
+    :primary_key => :id
   )
+
+  has_many(
+    :responses,
+    :through => :answer_choices,
+    :source => :responses
+  )
+
 end
