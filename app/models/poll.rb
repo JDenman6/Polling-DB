@@ -17,4 +17,20 @@ class Poll < ActiveRecord::Base
   )
 
 
+  ### Not needed with nested joins
+  # has_many(
+  #   :responses,
+  #   :through => :questions,
+  #   :source => :responses
+  # )
+  #
+  # has_many(
+  #   :answer_choices,
+  #   :through => :questions,
+  #   :source => :answer_choices
+  # )
+
+
+
+
 end
